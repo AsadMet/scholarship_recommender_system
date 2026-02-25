@@ -1,3 +1,4 @@
+
 # DreamFund Platform Yang ni lateste ASAD
 
 Welcome to DreamFund! This is a website that helps students find scholarships that match their profile. It uses AI to read your academic documents and automatically finds scholarships you might be eligible for.
@@ -131,3 +132,6 @@ The AI can understand:
 **Remember**: All three parts of the project (website, backend, and AI service) need to be running for everything to work properly.
 
 **Note**: Make sure all services are running before testing the upload and extraction functionality.
+=======
+# scholarship_recommender_system
+>>>>>>> c477c77fed1ccde32d92845811a8df41c22cb48d
