@@ -1,0 +1,32 @@
+{
+  "overall": {
+    "precision": 100.0,
+    "recall": 100.0,
+    "f1": 100.0,
+    "correct": 24,
+    "total": 24
+  },
+  "per_entity": {
+    "STUDENT_NAME": {
+      "precision": 100.0,
+      "recall": 100.0,
+      "f1": 100.0,
+      "correct": 8,
+      "total": 8
+    },
+    "CGPA": {
+      "precision": 100.0,
+      "recall": 100.0,
+      "f1": 100.0,
+      "correct": 8,
+      "total": 8
+    },
+    "PROGRAM": {
+      "precision": 100.0,
+      "recall": 100.0,
+      "f1": 100.0,
+      "correct": 8,
+      "total": 8
+    }
+  }
+}

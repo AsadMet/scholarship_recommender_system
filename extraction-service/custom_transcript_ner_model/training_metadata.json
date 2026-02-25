@@ -1,0 +1,17 @@
+{
+  "training_examples": 29,
+  "test_examples": 8,
+  "iterations": 85,
+  "final_train_loss": 8.167048797109153e-09,
+  "best_train_loss": 3.3293711351943252e-09,
+  "test_f1_score": 95.65217391304348,
+  "test_precision": 100.0,
+  "test_recall": 91.66666666666666,
+  "entity_labels": [
+    "CGPA",
+    "PROGRAM",
+    "STUDENT_NAME"
+  ],
+  "dropout": 0.2,
+  "learning_rate": 0.001
+}
