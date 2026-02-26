@@ -1,9 +1,9 @@
 
-# DreamFund Platform Yang ni lateste ASAD
+# Scholarship Platform 
 
-Welcome to DreamFund! This is a website that helps students find scholarships that match their profile. It uses AI to read your academic documents and automatically finds scholarships you might be eligible for.
+Welcome to Scholarship Recommender System! This is a website that helps students find scholarships that match their profile. It uses AI to read your academic documents and automatically finds scholarships you might be eligible for.
 
-## What Can DreamFund Do?
+## What Can Scholarhsip Recommender Do?
 
 - 📄 Upload your academic documents (transcripts)
 - 🤖 The AI reads these documents to understand your qualifications
