@@ -1,8 +1,8 @@
-# DreamFund — Developer README (README1.md)
+# — Developer README (README1.md)
 
 ## Overview
 
-DreamFund is a scholarship discovery platform that scrapes scholarships, extracts student data from transcripts, and recommends scholarships using a Hybrid Matching engine (Rule-based + Content-based + Behavioral + Diversity).
+cholarship discovery platform that scrapes scholarships, extracts student data from transcripts, and recommends scholarships using a Hybrid Matching engine (Rule-based + Content-based + Behavioral + Diversity).
 
 This document focuses on: high-level architecture, how the **Hybrid Matching** works, the **Extraction (NER)** pipeline, how to run services locally, and developer notes for contributing and troubleshooting.
 
