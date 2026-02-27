@@ -63,7 +63,11 @@ module.exports = connectDB;
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001'],
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'https://scholarship-recommender-system-1.onrender.com'
+  ],
   credentials: true
 }))
 app.use(express.json())

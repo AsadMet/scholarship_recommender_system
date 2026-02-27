@@ -552,6 +552,15 @@ router.get("/matches/:userId", auth, async (req, res) => {
       profileLength: studentFullProfile.length
     });
 
+      // DEBUG DATABASE CONTENT
+const allScholarships = await Scholarship.find({});
+console.log("ALL SCHOLARSHIPS IN DB:", allScholarships.length);
+
+allScholarships.forEach(s => {
+  console.log("Title:", s.title, "| Status:", s.status);
+});
+
+
     const scholarships = await Scholarship.find({ status: "active" });
     console.log(`📚 Found ${scholarships.length} active scholarships to check`);
 
