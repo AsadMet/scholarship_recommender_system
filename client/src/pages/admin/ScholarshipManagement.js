@@ -49,12 +49,13 @@ const ScholarshipManagement = () => {
     setScrapeMessage("Starting to scrape scholarships...")
 
     try {
-      // Temporary direct URL - use this if proxy doesn't work
-      const response = await fetch("http://localhost:5000/api/scholarships/scrape-scholarships", {
-        method: "POST",
+      const API_URL = process.env.REACT_APP_API_URL;
+
+      const response = await fetch(`${API_URL}/api/scholarships/scrape-scholarships`, {
+      method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // If you use auth tokens
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       })
 

@@ -5,6 +5,8 @@ import { useAuth } from "../../contexts/AuthContext"
 import axios from "axios"
 import AdminLayout from "../../components/AdminLayout"
 
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000"
+
 const UserManagement = () => {
   const { user, logout } = useAuth()
   const [users, setUsers] = useState([])
@@ -26,7 +28,7 @@ const UserManagement = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get("/api/users")
+      const response = await axios.get(`${API_BASE}/api/users`)
       setUsers(response.data)
     } catch (error) {
       setMessage("Failed to fetch users")
@@ -38,7 +40,7 @@ const UserManagement = () => {
   const handleDeleteUser = async (userId) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
       try {
-        await axios.delete(`/api/users/${userId}`)
+        await axios.delete(`${API_BASE}/api/users/${userId}`)
         setUsers(users.filter((u) => u._id !== userId))
         setMessage("User deleted successfully!")
       } catch (error) {
@@ -49,7 +51,7 @@ const UserManagement = () => {
 
   const viewUserDetails = async (userId) => {
     try {
-      const response = await axios.get(`/api/users/${userId}`)
+      const response = await axios.get(`${API_BASE}/api/users/${userId}`)
       setSelectedUser(response.data)
       setShowUserDetails(true)
     } catch (error) {
@@ -105,7 +107,7 @@ const UserManagement = () => {
 
   const handleUpdateRole = async (userId, newRole) => {
     try {
-      const res = await axios.put(`/api/users/${userId}`, { role: newRole })
+      const res = await axios.put(`${API_BASE}/api/users/${userId}`, { role: newRole })
       setUsers((prev) => prev.map((u) => (u._id === userId ? res.data : u)))
       setMessage("User updated successfully")
       // Also update selected user if open

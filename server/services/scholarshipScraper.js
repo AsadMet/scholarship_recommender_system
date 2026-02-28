@@ -262,9 +262,11 @@ class ScholarshipScraper {
   async scrapeScholarshipDetails(url, title) {
     try {
       const response = await axios.get(url, {
-        headers: this.headers,
-        timeout: 8000,
-      });
+  headers: this.headers,
+  timeout: 8000,
+  maxContentLength: 50 * 1024 * 1024,
+  maxBodyLength: 50 * 1024 * 1024
+});
 
       const $ = cheerio.load(response.data);
 

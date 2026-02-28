@@ -24,12 +24,9 @@ export const ScholarshipProvider = ({ children }) => {
   setError(null)
   try {
     console.log('Fetching scholarships...')
-    const response = await axios.get("/api/scholarships", {
-      params: {
-        status: "All",
-        limit: 100,
-      },
-    })
+    const response = await axios.get(`${API_BASE}/api/scholarships`, {
+  params: { status: "All", limit: 100 },
+})
     
     console.log('API Response:', response.data)
     console.log('Response type:', typeof response.data)
@@ -77,9 +74,9 @@ export const ScholarshipProvider = ({ children }) => {
     try {
       let response
       try {
-        response = await axios.get(`/api/scholarships/matches/${userId}`)
+        response = await axios.get(`${API_BASE}/api/scholarships/matches/${userId}`)
       } catch (nextError) {
-        response = await axios.get(`http://localhost:5000/api/scholarships/matches/${userId}`)
+        response = await axios.get(`${API_BASE}/api/scholarships/matches/${userId}`)
       }
 
       // Handle response format for matches too
@@ -114,7 +111,7 @@ export const ScholarshipProvider = ({ children }) => {
     }
   }, []);
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+  const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 const createScholarship = useCallback(async (scholarshipData) => {
   try {
@@ -145,10 +142,7 @@ const createScholarship = useCallback(async (scholarshipData) => {
 
   const updateScholarship = useCallback(async (id, scholarshipData) => {
     try {
-      const response = await axios.put(
-        `/api/scholarships/${id}`,
-        scholarshipData
-      );
+      const response = await axios.put(`${API_BASE}/api/scholarships/${id}`, scholarshipData);
 
       const updatedScholarship = response.data.scholarship || response.data;
 
@@ -171,7 +165,7 @@ const createScholarship = useCallback(async (scholarshipData) => {
 
   const deleteScholarship = useCallback(async (id) => {
     try {
-      await axios.delete(`/api/scholarships/${id}`);
+      await axios.delete(`${API_BASE}/api/scholarships/${id}`)
 
       setScholarships((prev) => {
         if (Array.isArray(prev)) {
