@@ -13,7 +13,7 @@ const connectDB = async () => {
   try {
     console.log('🔄 Connecting to MongoDB...');
     
-    const mongoURI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/dreamfundDB";
+    const mongoURI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/scholarshipdb";
     console.log('🔗 MongoDB URI:', mongoURI);
     
     // Use shorter timeouts and explicit options
