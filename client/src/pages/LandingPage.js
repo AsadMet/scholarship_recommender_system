@@ -243,7 +243,7 @@ const prevSlide = () => {
                   <li>
                     <button
                       className="btn btn-primary"
-                      onClick={() => (window.location.href = "http://localhost:3000/admin/login")}
+                      onClick={() => (window.location.href = `${window.location.origin}/admin/login`)}
                       style={{
                         background: 'rgba(102, 126, 234, 0.3)',
                         color: 'white',

@@ -1,7 +1,12 @@
 "use client"
 
+
 import { createContext, useContext, useState, useEffect } from "react"
 import axios from "axios"
+
+const API_BASE = process.env.REACT_APP_API_URL; // Add this at the top of your file
+
+
 
 const AuthContext = createContext()
 
@@ -35,117 +40,98 @@ export const AuthProvider = ({ children }) => {
     }
   }, [token])
 
-  // Check if user is logged in on app start
-  useEffect(() => {
-    const checkAuth = async () => {
-      if (token) {
-        try {
-          // Try Next.js API route first
-          let response
-          try {
-            response = await axios.get("/api/auth/me")
-          } catch (nextError) {
-            // Fallback to Express API
-            response = await axios.get("http://localhost:5000/api/auth/me")
-          }
-          setUser(response.data.user)
-        } catch (error) {
-          console.error("Auth check failed:", error)
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem("token")
-          }
-          setToken(null)
-        }
-      }
-      setLoading(false)
-    }
 
-    if (token !== null) {
-      checkAuth()
-    } else {
-      setLoading(false)
+  
+
+  // Check if user is logged in on app start
+ useEffect(() => {
+  const checkAuth = async () => {
+    if (token) {
+      try {
+        const response = await axios.get(`${API_BASE}/api/auth/me`);
+        setUser(response.data.user);
+      } catch (error) {
+        console.error("Auth check failed:", error);
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem("token");
+        }
+        setToken(null);
+      }
     }
-  }, [token])
+    setLoading(false);
+  };
+
+  if (token !== null) {
+    checkAuth();
+  } else {
+    setLoading(false);
+  }
+}, [token]);
 
   const login = async (email, password) => {
-    try {
-      // Try Next.js API route first
-      let response
-      try {
-        response = await axios.post("/api/auth/login", { email, password })
-      } catch (nextError) {
-        // If Next.js route fails, try Express server
-        console.log("Next.js route failed, trying Express server...")
-        response = await axios.post("http://localhost:5000/api/auth/login", { email, password })
-      }
+  try {
+    let response
+    response = await axios.post(`${API_BASE}/api/auth/login`, { email, password })
 
-      const { token: newToken, user: userData } = response.data
+    const { token: newToken, user: userData } = response.data
 
-      if (typeof window !== 'undefined') {
-        localStorage.setItem("token", newToken)
-      }
-      setToken(newToken)
-      setUser(userData)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem("token", newToken)
+    }
+    setToken(newToken)
+    setUser(userData)
 
-      return { success: true, user: userData }
-    } catch (error) {
-      console.error("Login error:", error)
-      return {
-        success: false,
-        message: error.response?.data?.message || error.message || "Login failed",
-      }
+     axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
+
+    return { success: true, user: userData }
+  } catch (error) {
+    console.error("Login error:", error)
+    return {
+      success: false,
+      message: error.response?.data?.message || error.message || "Login failed",
     }
   }
+}
 
   const loginWithOTP = async (email, otpCode) => {
-    try {
-      const response = await axios.post("http://localhost:5000/api/otp/verify-otp", { 
-        email, 
-        otpCode 
-      })
+  try {
+    const response = await axios.post(`${API_BASE}/api/otp/verify-otp`, { email, otpCode })
 
-      const { token: newToken, user: userData, message } = response.data
+    const { token: newToken, user: userData, message } = response.data
 
-      if (typeof window !== 'undefined') {
-        localStorage.setItem("token", newToken)
-      }
-      setToken(newToken)
-      setUser(userData)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem("token", newToken)
+    }
+    setToken(newToken)
+    setUser(userData)
 
-      return { 
-        success: true, 
-        message: message || "Login successful",
-        user: userData
-      }
-    } catch (error) {
-      console.error("OTP Login error:", error)
-      return {
-        success: false,
-        message: error.response?.data?.message || error.message || "OTP verification failed",
-      }
+    return { 
+      success: true, 
+      message: message || "Login successful",
+      user: userData
+    }
+  } catch (error) {
+    console.error("OTP Login error:", error)
+    return {
+      success: false,
+      message: error.response?.data?.message || error.message || "OTP verification failed",
     }
   }
+}
 
   const register = async (name, email, password) => {
-    try {
-      // Try Next.js API route first
-      let response
-      try {
-        response = await axios.post("/api/auth/register", { name, email, password })
-      } catch (nextError) {
-        // If Next.js route fails, try Express server
-        response = await axios.post("http://localhost:5000/api/auth/register", { name, email, password })
-      }
+  try {
+    const response = await axios.post(`${API_BASE}/api/auth/register`, { name, email, password })
 
-      // Registration does not auto-login; server returns a success message
-      return { success: true, message: response.data?.message || 'Registration successful' }
-    } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.message || "Registration failed",
-      }
+    // Registration does not auto-login; server returns a success message
+    return { success: true, message: response.data?.message || 'Registration successful' }
+  } catch (error) {
+    return {
+      success: false,
+      message: error.response?.data?.message || "Registration failed",
     }
   }
+}
 
   const logout = () => {
     if (typeof window !== 'undefined') {
@@ -158,7 +144,7 @@ export const AuthProvider = ({ children }) => {
 
   const updateProfile = async (profileData) => {
     try {
-      const response = await axios.put("/api/auth/profile", profileData)
+      const response = await axios.put(`${API_BASE}/api/auth/profile`, profileData)
       setUser(response.data.user)
       return { success: true }
     } catch (error) {
@@ -169,18 +155,18 @@ export const AuthProvider = ({ children }) => {
     }
   }
 
-  const updateProfileWithExtractedData = async (extractedData) => {
-    try {
-      const response = await axios.put("http://localhost:5000/api/auth/profile/extracted-data", extractedData)
-      setUser(response.data.user)
-      return { success: true, message: response.data.message }
-    } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.message || "Profile update with extracted data failed",
-      }
+ const updateProfileWithExtractedData = async (extractedData) => {
+  try {
+    const response = await axios.put(`${API_BASE}/api/auth/profile/extracted-data`, extractedData)
+    setUser(response.data.user)
+    return { success: true, message: response.data.message }
+  } catch (error) {
+    return {
+      success: false,
+      message: error.response?.data?.message || "Profile update with extracted data failed",
     }
   }
+}
 
   const value = {
     user,
