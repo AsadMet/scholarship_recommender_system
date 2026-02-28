@@ -118,9 +118,11 @@ router.get("/", async (req, res) => {
     // Build query
     const query = {};
 
-    if (status !== "All") {
-      query.status = status.toLowerCase();
-    }
+  // For admin, allow showing all scholarships regardless of status
+if (status && status !== "All") {
+  query.status = status.toLowerCase();
+}
+// If no status provided (or admin), do not filter by status
 
     console.log("MongoDB query:", query);
 
@@ -572,11 +574,13 @@ allScholarships.forEach(s => {
       fullProfile: studentFullProfile
     };
 
-    const matches = await hybridMatcher.matchScholarships(
-      scholarships,
-      studentData,
-      { clickData: {}, includeNonEligible: true }
-    );
+    let matches = await hybridMatcher.matchScholarships(
+  scholarships,
+  studentData,
+  { clickData: {}, includeNonEligible: true }
+);
+// Ensure matches is always an array
+if (!Array.isArray(matches)) matches = [];
 
     console.log(`📊 Hybrid matching results: ${matches.length} matches found`);
     
@@ -769,4 +773,18 @@ router.post("/enhance-all", async (req, res) => {
   }
 });
 
+
+// Debug: see all scholarships in DB
+router.get("/debug/all", adminAuth, async (req, res) => {
+  try {
+    const scholarships = await Scholarship.find().sort({ createdAt: -1 });
+    res.json({
+      total: scholarships.length,
+      scholarships
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 module.exports = router;
