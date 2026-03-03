@@ -21,7 +21,8 @@ router.post('/', async (req, res) => {
 
     try {
       // Call Python extraction service
-      const response = await axios.post('http://localhost:5001/api/extract', {
+      const EXTRACTION_URL = process.env.EXTRACTION_SERVICE_URL || 'http://localhost:5001';
+      const response = await axios.post(`${EXTRACTION_URL}/api/extract`, {
         filePath: filePath,
         fileName: fileName,
         fileId: fileId

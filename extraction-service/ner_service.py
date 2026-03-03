@@ -18,7 +18,12 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-CORS(app, origins=['http://localhost:3000', 'http://localhost:5000'])
+CORS(app, origins=[
+    'http://localhost:3000',
+    'http://localhost:5000',
+    'https://scholarship-recommender-system-1.onrender.com',
+    'https://scholarship-recommender-system.onrender.com'
+])
 
 # Global NER model
 nlp = None

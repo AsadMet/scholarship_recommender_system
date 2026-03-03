@@ -9,6 +9,7 @@ import ProgressIndicator from "../components/ProgressIndicator"
 const UploadPage = () => {
   const location = useLocation()
   const selectedMajor = location.state?.major || ""
+  const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000"
   const [files, setFiles] = useState([])
   const { user, updateProfileWithExtractedData } = useAuth()
   const [uploading, setUploading] = useState(false)
@@ -97,7 +98,7 @@ const UploadPage = () => {
         const formData = new FormData()
         formData.append("document", file)
 
-        const response = await axios.post("http://localhost:5000/api/upload", formData, {
+        const response = await axios.post(`${API_BASE}/api/upload`, formData, {
           headers: {
             "Content-Type": "multipart/form-data",
           },
@@ -122,7 +123,7 @@ const UploadPage = () => {
         try {
           setCurrentFile(`Extracting data from ${result.file.name}...`)
           
-          const extractResponse = await axios.post("http://localhost:5000/api/extract", {
+          const extractResponse = await axios.post(`${API_BASE}/api/extract`, {
             fileId: result.uploadResponse.fileId || result.uploadResponse.id,
             fileName: result.file.name,
             filePath: result.uploadResponse.filePath || result.uploadResponse.path,
