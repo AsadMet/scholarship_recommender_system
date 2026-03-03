@@ -6,6 +6,8 @@ import { useAuth } from "../../contexts/AuthContext"
 import axios from "axios"
 import AdminLayout from "../../components/AdminLayout"
 
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000"
+
 const AdminDashboard = () => {
   const { user, logout } = useAuth()
   const [stats, setStats] = useState({
@@ -21,7 +23,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const response = await axios.get("/api/reports/stats")
+        const response = await axios.get(`${API_BASE}/api/reports/stats`)
         setStats(response.data.stats)
         setRecentUsers(response.data.recentUsers)
         setRecentApplications(response.data.recentApplications)

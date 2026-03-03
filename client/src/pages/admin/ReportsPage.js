@@ -18,6 +18,8 @@ import { Bar } from "react-chartjs-2"
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
+const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000"
+
 const ReportsPage = () => {
   const { user, logout } = useAuth()
   const [stats, setStats] = useState({})
@@ -28,8 +30,8 @@ const ReportsPage = () => {
     const fetchReports = async () => {
       try {
         const [statsResponse, analyticsResponse] = await Promise.all([
-          axios.get("/api/reports/stats"),
-          axios.get("/api/reports/users"),
+          axios.get(`${API_BASE}/api/reports/stats`),
+          axios.get(`${API_BASE}/api/reports/users`),
         ])
 
         setStats(statsResponse.data.stats)
