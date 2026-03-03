@@ -8,6 +8,8 @@ except ImportError:
     HAS_PYMUPDF = False
     from pypdf import PdfReader
 import os
+import base64
+import tempfile
 from pathlib import Path
 import logging
 import spacy
@@ -18,6 +20,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024  # 20MB limit
 CORS(app, origins=[
     'http://localhost:3000',
     'http://localhost:5000',
@@ -376,25 +379,53 @@ def health_check():
 @app.route('/api/extract', methods=['POST'])
 def extract_information():
     """Extract information from uploaded document"""
+    tmp_path = None
     try:
         data = request.get_json()
-        
-        if not data or 'filePath' not in data:
+
+        if not data:
             return jsonify({
-                'error': 'Missing file path',
+                'error': 'Missing request body',
                 'name': None,
                 'cgpa': None,
                 'program': None,
                 'confidence': {'name': 0.0, 'cgpa': 0.0, 'program': 0.0, 'overall': 0.0}
             }), 400
-        
-        file_path = data['filePath']
+
         file_name = data.get('fileName', 'unknown')
-        
         logger.info(f"Processing: {file_name}")
-        
-        text = extract_text_from_file(file_path)
-        
+
+        # Support both base64 fileContent (cross-server) and filePath (local)
+        if 'fileContent' in data:
+            try:
+                file_bytes = base64.b64decode(data['fileContent'])
+                suffix = Path(file_name).suffix or '.pdf'
+                with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+                    tmp.write(file_bytes)
+                    tmp_path = tmp.name
+                logger.info(f"Decoded base64 content to temp file: {tmp_path} ({len(file_bytes)} bytes)")
+                text = extract_text_from_file(tmp_path)
+            except Exception as decode_err:
+                logger.error(f"Failed to decode fileContent: {decode_err}")
+                return jsonify({
+                    'error': 'Could not decode file content',
+                    'name': None,
+                    'cgpa': None,
+                    'program': None,
+                    'confidence': {'name': 0.0, 'cgpa': 0.0, 'program': 0.0, 'overall': 0.0}
+                }), 400
+        elif 'filePath' in data:
+            file_path = data['filePath']
+            text = extract_text_from_file(file_path)
+        else:
+            return jsonify({
+                'error': 'Missing fileContent or filePath',
+                'name': None,
+                'cgpa': None,
+                'program': None,
+                'confidence': {'name': 0.0, 'cgpa': 0.0, 'program': 0.0, 'overall': 0.0}
+            }), 400
+
         if not text:
             return jsonify({
                 'error': 'Could not extract text',
@@ -403,19 +434,19 @@ def extract_information():
                 'program': None,
                 'confidence': {'name': 0.0, 'cgpa': 0.0, 'program': 0.0, 'overall': 0.0}
             }), 400
-        
+
         logger.info(f"Extracted {len(text)} characters")
-        
+
         result = extract_with_custom_ner(text)
-        
+
         result['fileName'] = file_name
         result['textLength'] = len(text)
-        
+
         logger.info(f"Results: name={result['name']}, cgpa={result['cgpa']}, program={result['program'][:30] if result['program'] else None}")
         logger.info(f"Confidence: overall={result['confidence']['overall']}, quality_tier={result['quality_tier']}")
-        
+
         return jsonify(result)
-        
+
     except Exception as e:
         logger.error(f"Error: {e}", exc_info=True)
         return jsonify({
@@ -425,6 +456,14 @@ def extract_information():
             'program': None,
             'confidence': {'name': 0.0, 'cgpa': 0.0, 'program': 0.0, 'overall': 0.0}
         }), 500
+    finally:
+        # Clean up temp file if created
+        if tmp_path and os.path.exists(tmp_path):
+            try:
+                os.unlink(tmp_path)
+                logger.info(f"Cleaned up temp file: {tmp_path}")
+            except Exception:
+                pass
 
 if __name__ == '__main__':
     print("=" * 60)

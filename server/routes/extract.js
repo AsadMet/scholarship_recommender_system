@@ -1,5 +1,6 @@
 const express = require('express');
 const axios = require('axios');
+const fs = require('fs');
 const router = express.Router();
 
 // Extract data from uploaded document
@@ -19,15 +20,32 @@ router.post('/', async (req, res) => {
       });
     }
 
+    // Read file from disk and encode as base64
+    let fileContent;
     try {
-      // Call Python extraction service
+      const fileBuffer = fs.readFileSync(filePath);
+      fileContent = fileBuffer.toString('base64');
+      console.log(`📦 File read successfully: ${filePath} (${fileBuffer.length} bytes)`);
+    } catch (readError) {
+      console.error('❌ Could not read uploaded file:', readError.message);
+      return res.status(400).json({
+        error: 'Could not read uploaded file',
+        name: null,
+        cgpa: null,
+        program: null,
+        confidence: { name: 0.0, cgpa: 0.0, program: 0.0 }
+      });
+    }
+
+    try {
+      // Call Python extraction service with file contents (not path)
       const EXTRACTION_URL = process.env.EXTRACTION_SERVICE_URL || 'http://localhost:5001';
       const response = await axios.post(`${EXTRACTION_URL}/api/extract`, {
-        filePath: filePath,
+        fileContent: fileContent,
         fileName: fileName,
         fileId: fileId
       }, {
-        timeout: 30000,
+        timeout: 90000,
         headers: {
           'Content-Type': 'application/json'
         }
@@ -38,12 +56,12 @@ router.post('/', async (req, res) => {
 
     } catch (extractionError) {
       console.error('❌ Python extraction service error:', extractionError.message);
-      
+
       if (extractionError.code === 'ECONNREFUSED') {
-        console.error('🐍 Python extraction service is not running on port 5000');
+        console.error('🐍 Python extraction service is not running on port 5001');
         console.error('💡 Start it with: cd extraction-service && python ner_service.py');
       }
-      
+
       return res.status(503).json({
         error: "Extraction service unavailable. Please start the Python service.",
         name: null,
