@@ -15,6 +15,8 @@ export const useScholarships = () => {
 };
 
 export const ScholarshipProvider = ({ children }) => {
+  const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
   const [scholarships, setScholarships] = useState([]); // Always initialize as array
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -72,12 +74,7 @@ export const ScholarshipProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      let response
-      try {
-        response = await axios.get(`${API_BASE}/api/scholarships/matches/${userId}`)
-      } catch (nextError) {
-        response = await axios.get(`${API_BASE}/api/scholarships/matches/${userId}`)
-      }
+      const response = await axios.get(`${API_BASE}/api/scholarships/matches/${userId}`);
 
       // Handle response format for matches too
       if (Array.isArray(response.data)) {
@@ -100,7 +97,7 @@ export const ScholarshipProvider = ({ children }) => {
   const applyForScholarship = useCallback(async (scholarshipId) => {
     try {
       const response = await axios.post(
-        `/api/scholarships/${scholarshipId}/apply`
+        `${API_BASE}/api/scholarships/${scholarshipId}/apply`
       );
       return { success: true, message: response.data.message };
     } catch (error) {
@@ -110,8 +107,6 @@ export const ScholarshipProvider = ({ children }) => {
       };
     }
   }, []);
-
-  const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 const createScholarship = useCallback(async (scholarshipData) => {
   try {
