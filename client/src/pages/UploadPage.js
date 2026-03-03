@@ -263,7 +263,7 @@ const UploadPage = () => {
           <nav className="nav">
             <Link to="/" className="nav-link">Home</Link>
             <Link to="/profile" className="nav-link">Profile</Link>
-            <Link to="/results" className="nav-link">My Matches</Link>
+            <Link to={user ? `/results/${user.id}` : "/results"} className="nav-link">My Matches</Link>
           </nav>
         </div>
       </header>

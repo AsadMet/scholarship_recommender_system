@@ -67,21 +67,15 @@ const ResultsPage = () => {
           setStudentName(capitalizeWords(name))
 
           // Call public matches on backend
+          const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:5000"
           let res
           try {
-            res = await fetch("/api/scholarships/public-matches", {
+            res = await fetch(`${API_BASE}/api/scholarships/public-matches`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ cgpa, program, age: 0, major }),
             })
           } catch (_) {}
-          if (!res || !res.ok) {
-            res = await fetch("http://localhost:5000/api/scholarships/public-matches", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ cgpa, program, age: 0, major }),
-            })
-          }
           const data = await res.json()
           if (data.eligible && data.nonEligible) {
             setMatches(data.eligible)
