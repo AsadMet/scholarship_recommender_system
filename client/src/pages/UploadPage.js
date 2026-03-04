@@ -16,10 +16,25 @@ const UploadPage = () => {
   const [extracting, setExtracting] = useState(false)
   const [progress, setProgress] = useState(0)
   const [currentFile, setCurrentFile] = useState("")
+  const [extractWaitSecs, setExtractWaitSecs] = useState(0)
   const [message, setMessage] = useState("")
   const [dragOver, setDragOver] = useState(false)
   const [extractedData, setExtractedData] = useState([])
   const fileInputRef = useRef(null)
+
+  // Show elapsed time while extraction runs so the user knows it's working
+  useEffect(() => {
+    if (!extracting) { setExtractWaitSecs(0); return }
+    const t = setInterval(() => setExtractWaitSecs(s => s + 1), 1000)
+    return () => clearInterval(t)
+  }, [extracting])
+
+  const getExtractionStatusMsg = () => {
+    if (extractWaitSecs < 15) return currentFile || "Analysing document..."
+    if (extractWaitSecs < 45) return `AI service is starting up — please wait (${extractWaitSecs}s)`
+    if (extractWaitSecs < 90) return `Still warming up, almost ready... (${extractWaitSecs}s)`
+    return `Taking longer than usual — still working... (${extractWaitSecs}s)`
+  }
 
   const handleFileSelect = (selectedFiles) => {
     if (!selectedFiles) return
@@ -116,7 +131,7 @@ const UploadPage = () => {
       setProgress(40)
       setUploading(false)
       setExtracting(true)
-      setMessage("Extracting data from documents...")
+      setMessage("Extracting data from documents... (first run may take 1-2 minutes)")
       setProgress(50)
 
       const extractionPromises = uploadResults.map(async (result, index) => {
@@ -288,11 +303,11 @@ const UploadPage = () => {
             </div>
           )}
 
-          <ProgressIndicator 
+          <ProgressIndicator
             uploading={uploading}
             extracting={extracting}
             progress={progress}
-            currentFile={currentFile}
+            currentFile={extracting ? getExtractionStatusMsg() : currentFile}
             totalFiles={files.length}
           />
 
