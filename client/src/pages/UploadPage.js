@@ -135,49 +135,52 @@ const UploadPage = () => {
       setProgress(50)
 
       const extractionPromises = uploadResults.map(async (result, index) => {
-        try {
-          setCurrentFile(`Extracting data from ${result.file.name}...`)
-          
-          const extractResponse = await axios.post(`${API_BASE}/api/extract`, {
-            fileId: result.uploadResponse.fileId || result.uploadResponse.id,
-            fileName: result.file.name,
-            filePath: result.uploadResponse.filePath || result.uploadResponse.path,
-          }, { timeout: 300000 })
+        const attemptExtraction = async (attempt) => {
+          try {
+            setCurrentFile(
+              attempt === 1
+                ? `Extracting data from ${result.file.name}...`
+                : `Retrying extraction for ${result.file.name}...`
+            )
 
-          const extractResult = extractResponse.data
-          setProgress(50 + (index / uploadResults.length) * 45)
+            const extractResponse = await axios.post(`${API_BASE}/api/extract`, {
+              fileId: result.uploadResponse.fileId || result.uploadResponse.id,
+              fileName: result.file.name,
+              filePath: result.uploadResponse.filePath || result.uploadResponse.path,
+            }, { timeout: 300000 })
 
-          return {
-            fileName: result.file.name,
-            name: extractResult.name || "Not found",
-            cgpa: extractResult.cgpa?.toString() || "Not found",
-            program: extractResult.program || "Not found",
-            confidence: extractResult.confidence || { name: 0, cgpa: 0, program: 0 },
-            error: extractResult.error || null,
-          }
-        } catch (extractError) {
-          console.error(`Extraction failed for ${result.file.name}:`, extractError)
+            const extractResult = extractResponse.data
+            setProgress(50 + (index / uploadResults.length) * 45)
 
-          if (extractError.response?.status === 503) {
             return {
               fileName: result.file.name,
-              name: "Service unavailable",
-              cgpa: "Service unavailable",
-              program: "Service unavailable",
+              name: extractResult.name || "Not found",
+              cgpa: extractResult.cgpa?.toString() || "Not found",
+              program: extractResult.program || "Not found",
+              confidence: extractResult.confidence || { name: 0, cgpa: 0, program: 0 },
+              error: extractResult.error || null,
+            }
+          } catch (extractError) {
+            console.error(`Extraction attempt ${attempt} failed for ${result.file.name}:`, extractError)
+
+            if (extractError.response?.status === 503 && attempt < 2) {
+              setMessage("AI service is warming up, retrying automatically...")
+              await new Promise(resolve => setTimeout(resolve, 20000))
+              return attemptExtraction(2)
+            }
+
+            return {
+              fileName: result.file.name,
+              name: "Extraction failed",
+              cgpa: "Extraction failed",
+              program: "Extraction failed",
               confidence: { name: 0, cgpa: 0, program: 0 },
-              error: "The extraction service is starting up. Please wait a moment and try uploading again.",
+              error: extractError.response?.data?.error || extractError.message || "Extraction service unavailable",
             }
           }
-
-          return {
-            fileName: result.file.name,
-            name: "Extraction failed",
-            cgpa: "Extraction failed",
-            program: "Extraction failed",
-            confidence: { name: 0, cgpa: 0, program: 0 },
-            error: extractError.response?.data?.message || extractError.message || "Extraction service unavailable",
-          }
         }
+
+        return attemptExtraction(1)
       })
 
       const extractionResults = await Promise.all(extractionPromises)
@@ -200,12 +203,12 @@ const UploadPage = () => {
       setCurrentFile("")
 
       const serviceUnavailable = validResults.some(
-        (result) => result.error && result.error.includes("extraction service"),
+        (result) => result.error && (result.name === "Extraction failed" || result.cgpa === "Extraction failed"),
       )
 
       if (serviceUnavailable) {
         setMessage(
-          "Files uploaded but the extraction service is starting up (this can take 1-2 minutes on first use). Please wait a moment and try again.",
+          "Extraction failed. The AI service may be temporarily unavailable — please try again.",
         )
       } else {
         if (user && validResults.length > 0) {

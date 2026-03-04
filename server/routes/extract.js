@@ -63,7 +63,7 @@ router.post('/', async (req, res) => {
     try {
       // Wake up the extraction service first (handles Render free-tier cold starts)
       console.log(`🔌 Checking extraction service at ${EXTRACTION_URL}...`);
-      const isUp = await waitForExtractionService(150000);
+      const isUp = await waitForExtractionService(240000);
 
       if (!isUp) {
         return res.status(503).json({
