@@ -345,11 +345,24 @@ def extract_with_custom_ner(text):
         'model_based_confidence': True
     }
 
+# Load models at module level so they are available when running under
+# gunicorn (where __main__ is never executed) as well as directly.
+logger.info("Loading NER model and course translator at module startup...")
+load_custom_ner_model()
+load_course_translator()
+
 @app.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
-    
-    model_type = "Custom NER" if "custom_transcript_ner_model" in str(nlp.path) else "Default spaCy"
+
+    if nlp is None:
+        return jsonify({
+            'status': 'loading',
+            'message': 'NER model not yet loaded',
+            'service': 'ner_service',
+        }), 503
+
+    model_type = "Custom NER" if nlp.path and "custom_transcript_ner_model" in str(nlp.path) else "Default spaCy"
     
     labels = []
     if nlp and nlp.get_pipe("ner"):
