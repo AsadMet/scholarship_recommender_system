@@ -574,16 +574,17 @@ allScholarships.forEach(s => {
       fullProfile: studentFullProfile
     };
 
-    let matches = await hybridMatcher.matchScholarships(
-  scholarships,
-  studentData,
-  { clickData: {}, includeNonEligible: true }
-);
-// Ensure matches is always an array
-if (!Array.isArray(matches)) matches = [];
+    const matches = await hybridMatcher.matchScholarships(
+      scholarships,
+      studentData,
+      { clickData: {}, includeNonEligible: true }
+    );
 
-    console.log(`📊 Hybrid matching results: ${matches.length} matches found`);
-    
+    // hybridMatcher returns { eligible: [...], nonEligible: [...] } when includeNonEligible: true
+    const eligible = matches?.eligible ?? matches ?? [];
+    const nonEligible = matches?.nonEligible ?? [];
+    console.log(`📊 Hybrid matching results: ${eligible.length} eligible, ${nonEligible.length} non-eligible`);
+
     res.json(matches);
   } catch (error) {
     console.error("Get matches error:", error);
