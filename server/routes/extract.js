@@ -3,6 +3,29 @@ const axios = require('axios');
 const fs = require('fs');
 const router = express.Router();
 
+const EXTRACTION_URL = process.env.EXTRACTION_SERVICE_URL || 'http://localhost:5001';
+
+// Poll the health endpoint until the service is up or timeout is reached.
+// Render free-tier services spin down and need up to 2 minutes to cold-start.
+async function waitForExtractionService(maxWaitMs = 150000) {
+  const start = Date.now();
+  let attempt = 0;
+  while (Date.now() - start < maxWaitMs) {
+    attempt++;
+    try {
+      await axios.get(`${EXTRACTION_URL}/health`, { timeout: 10000 });
+      console.log(`✅ Extraction service is up (attempt ${attempt})`);
+      return true;
+    } catch (e) {
+      const elapsed = Math.round((Date.now() - start) / 1000);
+      console.log(`⏳ Waiting for extraction service... ${elapsed}s elapsed (attempt ${attempt})`);
+      await new Promise(resolve => setTimeout(resolve, 6000));
+    }
+  }
+  console.error('❌ Extraction service did not respond within timeout');
+  return false;
+}
+
 // Extract data from uploaded document
 router.post('/', async (req, res) => {
   try {
@@ -38,14 +61,27 @@ router.post('/', async (req, res) => {
     }
 
     try {
+      // Wake up the extraction service first (handles Render free-tier cold starts)
+      console.log(`🔌 Checking extraction service at ${EXTRACTION_URL}...`);
+      const isUp = await waitForExtractionService(150000);
+
+      if (!isUp) {
+        return res.status(503).json({
+          error: 'Extraction service did not start in time. Please try again in a minute.',
+          name: null,
+          cgpa: null,
+          program: null,
+          confidence: { name: 0.0, cgpa: 0.0, program: 0.0 }
+        });
+      }
+
       // Call Python extraction service with file contents (not path)
-      const EXTRACTION_URL = process.env.EXTRACTION_SERVICE_URL || 'http://localhost:5001';
       const response = await axios.post(`${EXTRACTION_URL}/api/extract`, {
         fileContent: fileContent,
         fileName: fileName,
         fileId: fileId
       }, {
-        timeout: 90000,
+        timeout: 120000,
         headers: {
           'Content-Type': 'application/json'
         }
@@ -57,13 +93,8 @@ router.post('/', async (req, res) => {
     } catch (extractionError) {
       console.error('❌ Python extraction service error:', extractionError.message);
 
-      if (extractionError.code === 'ECONNREFUSED') {
-        console.error('🐍 Python extraction service is not running on port 5001');
-        console.error('💡 Start it with: cd extraction-service && python ner_service.py');
-      }
-
       return res.status(503).json({
-        error: "Extraction service unavailable. Please start the Python service.",
+        error: 'Extraction service unavailable. Please try again.',
         name: null,
         cgpa: null,
         program: null,

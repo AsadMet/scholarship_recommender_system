@@ -127,7 +127,7 @@ const UploadPage = () => {
             fileId: result.uploadResponse.fileId || result.uploadResponse.id,
             fileName: result.file.name,
             filePath: result.uploadResponse.filePath || result.uploadResponse.path,
-          })
+          }, { timeout: 300000 })
 
           const extractResult = extractResponse.data
           setProgress(50 + (index / uploadResults.length) * 45)
@@ -150,7 +150,7 @@ const UploadPage = () => {
               cgpa: "Service unavailable",
               program: "Service unavailable",
               confidence: { name: 0, cgpa: 0, program: 0 },
-              error: "Python extraction service is not running on port 5001. Please start the extraction service.",
+              error: "The extraction service is starting up. Please wait a moment and try uploading again.",
             }
           }
 
@@ -185,12 +185,12 @@ const UploadPage = () => {
       setCurrentFile("")
 
       const serviceUnavailable = validResults.some(
-        (result) => result.error && result.error.includes("Python extraction service"),
+        (result) => result.error && result.error.includes("extraction service"),
       )
 
       if (serviceUnavailable) {
         setMessage(
-          "Files uploaded but extraction service is unavailable. Please start the Python extraction service on port 5001 and try again.",
+          "Files uploaded but the extraction service is starting up (this can take 1-2 minutes on first use). Please wait a moment and try again.",
         )
       } else {
         if (user && validResults.length > 0) {
