@@ -18,9 +18,9 @@ const connectDB = async () => {
     
     // Use shorter timeouts and explicit options
     const conn = await mongoose.connect(mongoURI, {
-      serverSelectionTimeoutMS: 5000,    // 5 seconds
-      connectTimeoutMS: 5000,            // 5 seconds  
-      socketTimeoutMS: 10000,            // 10 seconds
+      serverSelectionTimeoutMS: 30000,   // 30 seconds
+      connectTimeoutMS: 30000,           // 30 seconds
+      socketTimeoutMS: 45000,            // 45 seconds
       family: 4, // Use IPv4, skip trying IPv6
     });
     
